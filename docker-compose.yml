@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+  ui:
+    image: ui
+    build:
+      context: ./UI
+      dockerfile: Dockerfile
