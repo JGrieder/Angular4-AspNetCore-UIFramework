@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <base href="/" />
+    <link rel="stylesheet" href="stylesheets/bootstrap.css">
+    @*<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">*@
+    <script text="type/javascript" src="/node_modules/core-js/client/shim.js"></script>
+    <script text="type/javascript" src="/node_modules/zone.js/dist/zone.js"></script>
+    <script text="type/javascript" src="/node_modules/reflect-metadata/Reflect.js"></script>
+    <script text="type/javascript" src="/node_modules/systemjs/dist/system.src.js"></script>
+    
+    <script text="text/javascript" src="public/dependencies.bundle.min.js"></script>
+    <script text="text/javascript" src="public/application.bundle.min.js"></script>
+</head>
+<body>
+    <div>
+        @RenderBody()
+    </div>
+    <environment names="Development">
+        <script text="type/javascript">
+            System
+                .import("dist/configs/system.config.js").then(function() {
+                    System.import("app").catch(function(error) {
+                        console.error(error);
+                    });
+                })
+        </script>
+    </environment>
+</body>
+</html>
