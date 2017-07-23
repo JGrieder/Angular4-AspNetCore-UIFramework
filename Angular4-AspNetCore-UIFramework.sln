@@ -3,14 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "UI\UI.csproj", "{B86FD8F6-33AF-48F8-AD1B-35FCD8339A19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI", "UI\UI.csproj", "{B86FD8F6-33AF-48F8-AD1B-35FCD8339A19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{9DC64CED-AEFB-4691-96D3-068DC587B4BB}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{3DD25E13-7485-425A-A033-920128EAEEEC}"
-	ProjectSection(SolutionItems) = preProject
-		Documents\ChangeLog_CompareToBootstrap4.xlsx = Documents\ChangeLog_CompareToBootstrap4.xlsx
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{9DC64CED-AEFB-4691-96D3-068DC587B4BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
