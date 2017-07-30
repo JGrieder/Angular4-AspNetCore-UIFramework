@@ -2,11 +2,11 @@
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
-import { HintDirective } from "./hint.directive";
-import { InputDirective } from "./input.directive";
-import { TextFieldComponent } from "./text-field.component";
-import { TextFieldAddonDirective } from "./text-field-addon.directive";
-import { TextAreaAutoSizeDirective } from "./autosize.directive"
+import { HintDirective } from "./text-field/hint.directive";
+import { InputDirective } from "./text-field/input.directive";
+import { TextFieldComponent } from "./text-field/text-field.component";
+import { TextFieldAddonDirective } from "./text-field/text-field-addon.directive";
+import { TextAreaAutoSizeDirective } from "./text-field/autosize.directive"
 
 export { InputDirective, HintDirective, TextFieldComponent, TextAreaAutoSizeDirective }
 

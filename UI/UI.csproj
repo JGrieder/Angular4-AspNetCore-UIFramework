@@ -42,9 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\application\demo\" />
-    <Folder Include="Content\application\ux\forms\text-field\" />
     <Folder Include="Content\scss\" />
+    <Folder Include="wwwroot\dist\" />
     <Folder Include="wwwroot\public\" />
+    <Folder Include="wwwroot\public\" />
+    <Folder Include="wwwroot\stylesheets\" />
     <Folder Include="wwwroot\stylesheets\" />
   </ItemGroup>
   
