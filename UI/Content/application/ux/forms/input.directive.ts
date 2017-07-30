@@ -9,7 +9,7 @@ import { NgControl, NgForm, FormGroupDirective } from "@angular/forms";
  * 
  */
 @Directive({
-    selector: "input[mav-input], textarea[mav-input]",
+    selector: "input, textarea",
     host: {
         "[class.form-control]": "true",
         "[class.form-control-warning]": "isWarningState()",

@@ -14,18 +14,17 @@
 import { animate, state, style, transition, trigger } from "@angular/animations";
 import { HintDirective } from "./hint.directive";
 import { InputDirective } from "./input.directive";
-import { InputGroupAddonDirective } from "./input-group-addon.directive";
+import { TextFieldAddonDirective } from "./text-field-addon.directive";
 
 /**
  * TODO Create a CSS Class to make sure the required symbol appears as Red
  * TODO Consider implementing a means for a user to override the required symbol with something from Font-Awesome
  *
- * TODO Add Validation for Input Messages
  * TODO In Error flow support a fallback approach in case the native validation message does not trigger
  */
 
 @Component({
-    selector: "form-control",
+    selector: "text-field",
     animations:
     [
         trigger("transitionMessages",
@@ -40,7 +39,6 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
     ],
     host: {
         "[attr.align]": "null",
-        "[class.form-group]": "true",
         "[class.has-success]": "_inputChild.isSuccessState()",
         "[class.has-warning]": "_inputChild.isWarningState()",
         "[class.has-danger]": "_inputChild.isErrorState()",
@@ -57,10 +55,10 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
         <span class="required" *ngIf="_inputChild.required">*</span>
      </label>
      
-     <div [class.input-group]="_containerHasInputGroupAddonChildren">
-        <ng-content select="input-group-addon[type='prefix']"></ng-content>
+     <div [class.input-group]="_containerHasTextFieldAddonChildren">
+        <ng-content select="text-field-addon[position='left']"></ng-content>
         <ng-content select="input, textarea"></ng-content>
-        <ng-content select="input-group-addon[type='suffix']"></ng-content>
+        <ng-content select="text-field-addon[position='right']"></ng-content>
      </div>
    
      <div [ngSwitch]="this._getDisplayedMessages()">
@@ -79,7 +77,7 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
         </div>
      </div>`
 })
-export class FormControlContainerComponent implements AfterViewInit, AfterContentInit, AfterContentChecked {
+export class TextFieldComponent implements AfterViewInit, AfterContentInit, AfterContentChecked {
 
     @Input()
     public label: string;
@@ -93,12 +91,12 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
     @ContentChildren(HintDirective)
     private _hintChildren: QueryList<HintDirective>;
     
-    @ContentChildren(InputGroupAddonDirective)
-    private _inputGroupAddonChildren: QueryList<InputGroupAddonDirective>;
+    @ContentChildren(TextFieldAddonDirective)
+    private _textFieldAddonChildren: QueryList<TextFieldAddonDirective>;
 
     private _formControlFeedbackAnimationState: string;
 
-    private _containerHasInputGroupAddonChildren: boolean;
+    private _containerHasTextFieldAddonChildren: boolean;
 
     constructor(
         private _elementRef: ElementRef,
@@ -114,7 +112,7 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
 
         //Revalidate when things change
         this._hintChildren.changes.subscribe(() => this._processHints());
-        this._containerHasInputGroupAddonChildren = this._inputGroupAddonChildren.length > 0;
+        this._containerHasTextFieldAddonChildren = this._textFieldAddonChildren.length > 0;
     }
 
     public ngAfterContentChecked(): void {
@@ -221,7 +219,7 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
 
     private _validateFieldAddons(): void {
         if (this._inputChild.isTextArea()) {
-            if (this._inputGroupAddonChildren.length > 0) {
+            if (this._textFieldAddonChildren.length > 0) {
                 throw new Error("Form Control Container does not allow for field addons to be attached to a text area");
             }
         }
@@ -230,6 +228,7 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
     private _getSuccessMessage(): Set<string> {
 
         if (!this.messages) return null;
+        if (!this.messages["success"]) return null;
         return this.messages["success"];
     }
 
