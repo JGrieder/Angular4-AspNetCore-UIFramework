@@ -2280,22 +2280,7 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
       position: relative;
       margin-top: 0;
       margin-right: 0.25rem;
-      margin-left: 0; }
-    /* line 442, Content/scss/_forms.scss */
-    .form-inline .custom-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-left: 0; }
-    /* line 449, Content/scss/_forms.scss */
-    .form-inline .custom-control-indicator {
-      position: static;
-      display: inline-block;
-      margin-right: 0.25rem;
-      vertical-align: text-bottom; }
-    /* line 456, Content/scss/_forms.scss */
-    .form-inline .has-feedback .form-control-feedback {
-      top: 0; } }
+      margin-left: 0; } }
 
 /* line 7, Content/scss/_buttons.scss */
 .btn {

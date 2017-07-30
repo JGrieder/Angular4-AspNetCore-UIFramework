@@ -106,13 +106,13 @@ export class InputDirective {
     public isWarningState(): boolean {
         if (this.formNoValidate) return false;
         if (!this.required && this.empty) return false;
-
+        
         const control = this.ngControl;
         const isInvalid = control && control.invalid;
         const isTouched = control && control.touched;
         const isSubmitted = (this._parentFormGroup && this._parentFormGroup.submitted) ||
             (this._parentForm && this._parentForm.submitted);
-
+            
         return (isInvalid && (isTouched || isSubmitted));
     }
     
@@ -143,6 +143,10 @@ export class InputDirective {
     public setCustomError(errorMessage: string): void {
         //Set Validity.CustomError to true and provide a custom message to display.
         this._elementRef.nativeElement.setCustomValidity(errorMessage);
+    }
+
+    public getCustomError(): string {
+        return this._elementRef.nativeElement.validationMessage;
     }
 
     public getSupportedInputTypes(): Set<string> {

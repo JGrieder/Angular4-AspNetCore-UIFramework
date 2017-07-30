@@ -8,13 +8,15 @@ import { InputDirective } from "../ux/forms/maverick-forms.module";
         <form [formGroup]="demoForm" (ngSubmit)="onSubmit()">
         <div class="row">
         <div class="col-12">
-        <form-control [label]="'Email'">
+        <form-control [label]="'Email'" 
+                      [messages]="{ 
+                                    'required': 'An Email is required',
+                                    'email': 'This email is invalid',
+                                    'success': 'This email is valid' 
+                                  }">
         <input-group-addon type="prefix">Prefix</input-group-addon>
         <input [type]="'text'" mav-input id="Email" #email maxlength="50" formControlName="email" [required]="true" />
         <input-group-addon type="suffix">Suffix</input-group-addon>
-        <form-control-feedback type="warning">Email is invalid!</form-control-feedback>
-        <form-control-feedback type="success">Email is valid!</form-control-feedback>
-        <form-control-feedback type="error">{{email.validationMessage}}</form-control-feedback>
         <hint [align]="'start'">Left Hint</hint>
         <hint [align]="'end'">{{email.value.length}} / 50</hint>
         </form-control>
@@ -26,9 +28,6 @@ import { InputDirective } from "../ux/forms/maverick-forms.module";
         <input-group-addon type="prefix">Prefix</input-group-addon>
         <input [type]="'text'" mav-input id="Email2" #email maxlength="50" formControlName="email2" />
         <input-group-addon type="suffix">Suffix</input-group-addon>
-        <form-control-feedback type="warning">Email is invalid!</form-control-feedback>
-        <form-control-feedback type="success">Email is valid!</form-control-feedback>
-        <form-control-feedback type="error">{{email.validationMessage}}</form-control-feedback>
         <hint [align]="'start'">Left Hint</hint>
         <hint [align]="'end'">{{email.value.length}} / 50</hint>
         </form-control>

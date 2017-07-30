@@ -13,7 +13,6 @@
 } from "@angular/core";
 import { animate, state, style, transition, trigger } from "@angular/animations";
 import { HintDirective } from "./hint.directive";
-import { FormControlFeedbackDirective } from "./form-control-feedback.directive";
 import { InputDirective } from "./input.directive";
 import { InputGroupAddonDirective } from "./input-group-addon.directive";
 
@@ -21,8 +20,8 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
  * TODO Create a CSS Class to make sure the required symbol appears as Red
  * TODO Consider implementing a means for a user to override the required symbol with something from Font-Awesome
  *
- * TODO Make sure the control can support multiple validators
- * TODO Resolve custom validation message for form-control-feedback directives
+ * TODO Add Validation for Input Messages
+ * TODO In Error flow support a fallback approach in case the native validation message does not trigger
  */
 
 @Component({
@@ -54,7 +53,7 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
         "[class.ng-pending]": "_shouldForward('pending')"
     },
     encapsulation: ViewEncapsulation.None,
-    template:`<label [attr.for]="_inputChild.id" class="form-control-label">{{label}}
+    template: `<label [attr.for]="_inputChild.id" class="form-control-label">{{label}}
         <span class="required" *ngIf="_inputChild.required">*</span>
      </label>
      
@@ -66,13 +65,13 @@ import { InputGroupAddonDirective } from "./input-group-addon.directive";
    
      <div [ngSwitch]="this._getDisplayedMessages()">
         <div *ngSwitchCase="'error'" [@transitionMessages]="_formControlFeedbackAnimationState">
-            <ng-content select="form-control-feedback[type='error']"></ng-content>
+            <div class="form-control-feedback">{{_inputChild.getCustomError()}}</div>
         </div>
         <div *ngSwitchCase="'warning'" [@transitionMessages]="_formControlFeedbackAnimationState">
-            <ng-content select="form-control-feedback[type='warning']"></ng-content>
+            <div class="form-control-feedback">{{_getValidationMessage()}}</div>
         </div>
         <div *ngSwitchCase="'success'" [@transitionMessages]="_formControlFeedbackAnimationState">
-            <ng-content select="form-control-feedback[type='success']"></ng-content>
+            <div class="form-control-feedback">{{_getSuccessMessage()}}</div>
         </div>
         <div *ngSwitchCase="'hint'" [@transitionMessages]="_formControlFeedbackAnimationState" class="clearfix">
             <ng-content select="hint:not([align='end'])"></ng-content>
@@ -84,16 +83,16 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
 
     @Input()
     public label: string;
-    
+
+    @Input()
+    public messages: Map<string, Set<string>>;
+
     @ContentChild(InputDirective)
     private _inputChild: InputDirective;
 
     @ContentChildren(HintDirective)
     private _hintChildren: QueryList<HintDirective>;
-
-    @ContentChildren(FormControlFeedbackDirective)
-    private _formControlFeedbackChildren: QueryList<FormControlFeedbackDirective>;
-
+    
     @ContentChildren(InputGroupAddonDirective)
     private _inputGroupAddonChildren: QueryList<InputGroupAddonDirective>;
 
@@ -134,49 +133,21 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
      */
     private _getDisplayedMessages(): "error" | "hint" | "warning" | "success" | "none" {
         const input = this._inputChild;
+        const hasHints: boolean = (this._hintChildren.length > 0 && this._hintChildren.length <= 2);
 
-        if (this._formControlFeedbackChildren.length < 0) return "none";
-        if (this._hintChildren.length < 0) return "none";
-
-        if (this._formControlFeedbackChildren.find(this._isErrorMessageDefined)) {
-            if (input.isErrorState()) return "error";
+        if (!this.messages) {
+            return hasHints ? "hint" : "none";
         }
-
-        if (this._formControlFeedbackChildren.find(this._isWarningMessageDefined)) {
-            if (input.isWarningState()) return "warning";
-        }
-
-        if (this._formControlFeedbackChildren.find(this._isSuccessMessageDefined)) {
-            if (input.isSuccessState()) return "success";
-        }
-
-        return "hint";
+        
+        if (input.isErrorState()) return "error";
+        
+        if (input.isWarningState()) return "warning";
+        
+        if (input.isSuccessState()) return "success";
+        
+        return hasHints ? "hint" : "none";
     }
     
-    /**
-     * Predicate for seeing if at least one feedback message directive is defined with a type of 'error'
-     * @param feedback
-     */
-    private _isErrorMessageDefined(feedback: FormControlFeedbackDirective): boolean {
-        return feedback.type === "error";
-    }
-
-    /**
-     * Predicate for seeing if at least one feedback message directive is defined with a type of 'warning'
-     * @param feedback
-     */
-    private _isWarningMessageDefined(feedback: FormControlFeedbackDirective): boolean {
-        return feedback.type === "warning";
-    }
-
-    /**
-     * Predicate for seeing if at least one feedback message directive is defined with a type of 'success'
-     * @param feedback
-     */
-    private _isSuccessMessageDefined(feedback: FormControlFeedbackDirective): boolean {
-        return feedback.type === "success";
-    }
-
     /**
      * Determines whether a class from the NgControl should be forwarded to the host element.
      * @param prop
@@ -254,5 +225,30 @@ export class FormControlContainerComponent implements AfterViewInit, AfterConten
                 throw new Error("Form Control Container does not allow for field addons to be attached to a text area");
             }
         }
+    }
+
+    private _getSuccessMessage(): Set<string> {
+
+        if (!this.messages) return null;
+        return this.messages["success"];
+    }
+
+    private _getValidationMessage(): Set<string> {
+        const errors = this._inputChild.ngControl.errors;
+
+        if (!errors) return null;
+        if (!this.messages) return null;
+        
+        let validationMessage: Set<string>;
+
+        Object.keys(this.messages).some(key => {
+            if (errors[key]) {
+                validationMessage = this.messages[key];
+                return true;
+            }
+            return false;
+        });
+
+        return validationMessage;
     }
 }
