@@ -1,5 +1,7 @@
-﻿import { Directive, Input, Renderer2, ElementRef, Self, Optional } from "@angular/core";
+﻿import { Directive, Input, Renderer2, ElementRef, Self, Optional, OnChanges, OnDestroy, DoCheck } from "@angular/core";
 import { NgControl, NgForm, FormGroupDirective } from "@angular/forms";
+import { Subject } from "rxjs/Subject";
+
 
 /**
  * TODO: Support Masking
@@ -21,12 +23,13 @@ import { NgControl, NgForm, FormGroupDirective } from "@angular/forms";
         "[required]": "required",
         "[attr.aria-describedby]": "ariaDescribedBy || null",
         "[attr.aria-invalid]": "isWarningState()",
-        "(blur)": "_onBlur()",
-        "(focus)": "_onFocus()",
+        "(blur)": "_focusChanged(false)",
+        "(focus)": "_focusChanged(true)",
         "(input)": "_onInput()"
     }
 })
-export class InputDirective {
+export class InputDirective implements OnChanges, OnDestroy, DoCheck {
+    
     //Private Variables
     private _type: string;
     private _disabled: boolean;
@@ -35,13 +38,17 @@ export class InputDirective {
     private _neverEmptyInputTypes: Array<string>;
     private _placeholder: string;
     private _formNoValidate: boolean;
-
+    private _previousNativeValue: string;
+    
     //Public Properties
     //Whether or not the element is focused
     public focused: boolean;
 
     // Set the aria-describedby attribute on the input for improved A11Y
     public ariaDescribedBy: string;
+
+    private _fieldState: ValidationState;
+    public stateChanges: Subject<void>;
 
     @Input()
     public get disabled() { return this.ngControl ? this.ngControl.disabled : this._disabled; }
@@ -95,49 +102,47 @@ export class InputDirective {
         this._required = false;
         this._placeholder = "";
         this.focused = false;
+        this._fieldState = ValidationState.None;
+
+        this._previousNativeValue = this.value;
+        this.stateChanges = new Subject<void>();
 
         this._neverEmptyInputTypes = ["date", "datetime", "datetime-local", "month", "time", "week"]
             .filter(t => this.getSupportedInputTypes().has(t));
+    }
+
+    public ngOnChanges(changes: Object): void {
+        this.stateChanges.next();
+    }
+
+    public ngOnDestroy(): void {
+        this.stateChanges.complete();
+    }
+
+    public ngDoCheck(): void {
+        if (this.ngControl) {
+            // We need to re-evaluate this on every change detection cycle, because there are some
+            // error triggers that we can't subscribe to (e.g. parent form submissions). This means
+            // that whatever logic is in here has to be super lean or we risk destroying the performance.
+            this._updateValidatity();
+        } else {
+            this._dirtyCheckNativeValue();
+        }
     }
 
     //Public Methods
     public focus(): void { this._elementRef.nativeElement.focus(); }
 
     public isWarningState(): boolean {
-        if (this.formNoValidate) return false;
-        if (!this.required && this.empty) return false;
-        
-        const control = this.ngControl;
-        const isInvalid = control && control.invalid;
-        const isTouched = control && control.touched;
-        const isSubmitted = (this._parentFormGroup && this._parentFormGroup.submitted) ||
-            (this._parentForm && this._parentForm.submitted);
-            
-        return (isInvalid && (isTouched || isSubmitted));
+        return this._fieldState === ValidationState.Warning;
     }
-    
+
     public isSuccessState(): boolean {
-        if (this.empty) return false;
-        if (this.formNoValidate) return false;
-
-        const control = this.ngControl;
-        const isValid = control && control.valid;
-        const isTouched = control && control.touched;
-
-        return isTouched && isValid;
+        return this._fieldState === ValidationState.Success;
     }
 
     public isErrorState(): boolean {
-        if (this.empty) return false;
-        if (this.formNoValidate) return false;
-
-        const control = this.ngControl;
-        const isTouched = control && control.touched;
-        const isSubmitted = (this._parentFormGroup && this._parentFormGroup.submitted) ||
-            (this._parentForm && this._parentForm.submitted);
-        const fieldHasError = this._elementRef.nativeElement.validity.customError;
-
-        return fieldHasError && (isTouched || isSubmitted);
+        return this._fieldState === ValidationState.Error;
     }
 
     public setCustomError(errorMessage: string): void {
@@ -181,16 +186,59 @@ export class InputDirective {
 
         return supportedInputTypes;
     }
-
+    
     //Private Methods
-    private _onFocus(): void { this.focused = true; }
-
-    private _onBlur(): void { this.focused = false; }
+    private _focusChanged(isFocused: boolean): void {
+        if (isFocused !== this.focused) {
+            this.focused = isFocused;
+            this.stateChanges.next();
+        }
+    }
 
     private _onInput(): void {
         if (this._elementRef.nativeElement.validity.customError) {
             this._elementRef.nativeElement.setCustomValidity("");
         }
+    }
+
+    private _updateValidatity(): void {
+        const oldState: ValidationState = this._fieldState;
+        const newState: ValidationState = this._getValidationState();
+
+        if (newState !== oldState) {
+            this._fieldState = newState;
+            this.stateChanges.next();
+        }
+    }
+
+    private _dirtyCheckNativeValue(): void {
+        const newValue = this.value;
+
+        if (this._previousNativeValue !== newValue) {
+            this._previousNativeValue = newValue;
+            this.stateChanges.next();
+        }
+    }
+
+    private _getValidationState(): ValidationState {
+        if (this.formNoValidate) return ValidationState.None;
+        if (!this.required && this.empty) return ValidationState.None;
+
+        const control: NgControl = this.ngControl;
+        const isTouched: boolean = control && control.touched;
+        const isSubmitted: boolean = (this._parentFormGroup && this._parentFormGroup.submitted) ||
+            (this._parentForm && this._parentForm.submitted);
+
+        const fieldHasError: boolean = this._elementRef.nativeElement.validity.customError;
+        if (fieldHasError && (isTouched || isSubmitted)) return ValidationState.Error;
+
+        const isInvalid: boolean = control && control.invalid;
+        if (isInvalid && (isTouched || isSubmitted)) return ValidationState.Warning;
+
+        const isValid: boolean = control && control.valid;
+        if (isTouched && isValid) return ValidationState.Success;
+
+        return ValidationState.None;
     }
 
     private _validateType(): void {
@@ -207,4 +255,11 @@ export class InputDirective {
         const nativeElement = this._elementRef.nativeElement;
         return nativeElement ? nativeElement.nodeName.toLowerCase() === "textarea" : false;
     }
+}
+
+enum ValidationState {
+    None = 0,
+    Success = 1,
+    Warning = 2,
+    Error = 3
 }

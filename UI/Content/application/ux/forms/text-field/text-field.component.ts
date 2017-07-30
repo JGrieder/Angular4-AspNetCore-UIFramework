@@ -9,7 +9,8 @@
     AfterContentInit,
     AfterContentChecked,
     ElementRef,
-    ChangeDetectorRef
+    ChangeDetectorRef,
+    ChangeDetectionStrategy
 } from "@angular/core";
 import { animate, state, style, transition, trigger } from "@angular/animations";
 import { HintDirective } from "./hint.directive";
@@ -51,6 +52,7 @@ import { TextFieldAddonDirective } from "./text-field-addon.directive";
         "[class.ng-pending]": "_shouldForward('pending')"
     },
     encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `<label [attr.for]="_inputChild.id" class="form-control-label">{{label}}
         <span class="required" *ngIf="_inputChild.required">*</span>
      </label>
@@ -110,6 +112,16 @@ export class TextFieldComponent implements AfterViewInit, AfterContentInit, Afte
         this._validateFieldAddons();
         this._processHints();
 
+        this._inputChild.stateChanges.subscribe(() => {
+            this._changeDetectorRef.markForCheck();
+        });
+
+        if (this._inputChild.ngControl && this._inputChild.ngControl.valueChanges) {
+            this._inputChild.ngControl.valueChanges.subscribe(() => {
+                this._changeDetectorRef.markForCheck();
+            });
+        }
+
         //Revalidate when things change
         this._hintChildren.changes.subscribe(() => this._processHints());
         this._containerHasTextFieldAddonChildren = this._textFieldAddonChildren.length > 0;
@@ -136,10 +148,10 @@ export class TextFieldComponent implements AfterViewInit, AfterContentInit, Afte
         if (!this.messages) {
             return hasHints ? "hint" : "none";
         }
-        
-        if (input.isErrorState()) return "error";
-        
+
         if (input.isWarningState()) return "warning";
+
+        if (input.isErrorState()) return "error";
         
         if (input.isSuccessState()) return "success";
         

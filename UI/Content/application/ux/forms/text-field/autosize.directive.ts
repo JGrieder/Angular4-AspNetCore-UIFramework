@@ -2,6 +2,10 @@
 import { DOCUMENT } from "@angular/platform-browser"
 import { ParentOverflow } from "./parent-overflow.model";
 
+/**
+ * BUG Scroll Top is undefined when autosizing goes past the current view port
+ */
+
 @Directive({
     selector: "[autosize]",
     host: {

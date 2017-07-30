@@ -78,9 +78,7 @@ export class DemoComponent {
     }
     
     public onSubmit() {
-
-        console.log("Input Directives", this.formInputs);
-
+    
         if (this.demoForm.value["email"] === "test@test.com") {
             const emailField = this.formInputs.find((inputDirective) => inputDirective.id === "Email");
             emailField.setCustomError("This E-mail is not allowed!");

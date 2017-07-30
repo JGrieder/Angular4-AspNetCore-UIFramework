@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\application\demo\" />
+    <Folder Include="Content\application\ux\forms\checkbox\" />
     <Folder Include="Content\scss\" />
     <Folder Include="wwwroot\dist\" />
     <Folder Include="wwwroot\public\" />
